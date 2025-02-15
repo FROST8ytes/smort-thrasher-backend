@@ -8,7 +8,7 @@ class Database:
         self.connection = pg.connect(
             dbname="smort",
             user="postgres",
-            password="",
+            password="123",
             host="localhost",
             port="5432"
 
@@ -24,6 +24,12 @@ class Database:
         except Exception as e:
             print(f"An error occurred: {e}")
             return False
+    
+    def close_connection(self):
+        if self.connection:
+            self.cursor.close()
+            print("PostgreSQL connection is closed")
+            self.connection.close()
 
     def add_sensor_record(self, sensor_ID: int, trash_level: str, image_64bit_encoded: str) -> bool:
         try:
@@ -92,3 +98,14 @@ class Database:
             self.connection.rollback()
             return False
 
+
+if __name__ == "__main__":
+    db=Database()
+    db.check_connection()
+    
+    dataRow=db.get_sensor_record(1)
+    print(dataRow)
+
+    db.close_connection()
+
+    pass
