@@ -263,7 +263,7 @@ class Database:
             SELECT * FROM sensor_record WHERE smort_ID = %s ORDER BY time_stamp DESC LIMIT 1
             """
             self.cursor.execute(query, (sensor_ID,))
-            record = self.cursor.fetchone()[0]
+            record = self.cursor.fetchone()
             return record
         except Exception as e:
             print(f"An error occurred: {e}")
