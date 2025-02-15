@@ -5,13 +5,21 @@ services:
     volumes:
       - .:/app
     ports:
-      - 8008:8000
+      - 80:8000
+    restart: always
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
   db:
     image: postgres:17-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
+    restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
