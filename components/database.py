@@ -94,6 +94,21 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
+    def get_latest_sensor_record(self, sensor_ID: int) -> list:
+        try:
+            query = """
+            SELECT smort_ID, time_stamp, trash_level 
+            FROM sensor_record 
+            WHERE smort_ID = %s 
+            ORDER BY time_stamp DESC 
+            LIMIT 1
+            """
+            self.cursor.execute(query, (sensor_ID,))
+            record = self.cursor.fetchone()  
+            return [record] if record else [] 
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
 
     def get_sensor(self, ID:int) -> dict:
         try:
