@@ -1,3 +1,5 @@
+import os 
+from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import os
@@ -22,7 +24,7 @@ class SmortPredictor:
                 print(f"Warning: Model file not found for sensor {sensor_id}")
         return models
 
-    def predict_full_level(self, sensor_id: int, latest_data: Dict) -> Optional[Dict]:
+    def predict_full_level(self, sensor_id: int, latest_data: Dict):
       
         if sensor_id not in self.models:
             raise ValueError(f"Model for sensor {sensor_id} is not loaded.")
@@ -61,25 +63,43 @@ class SmortPredictor:
 
         return None  
 
+
+class smortPredictorImplementor:
+    def __init__(self, model_directory="../ML-model", sensor_ids=[1,2,3,4,5,6,7,8,9]):
+        load_dotenv()
+        self.model_directory = model_directory
+        
+        db=Database(os.getenv("DB_HOST"), os.getenv("DB_PORT"), os.getenv("DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_NAME"))
+        latest_data = db.get_latest_sensor_record(sensor_ID=9,num_of_row=4)
+        #db.close_connection()
+
+        self.data= {
+        'time_stamp': pd.Timestamp(latest_data[0][1]),  # Most recent timestamp
+        'trash_level': float(latest_data[0][2]),        # Current level
+        'lag_1': float(latest_data[1][2]),             # Previous reading
+        'lag_2': float(latest_data[2][2]),             # Two readings ago
+        'lag_3': float(latest_data[3][2])              # Three readings ago
+
+        }
+    
+
+        self.sensor_ids = sensor_ids
+        self.predictor = SmortPredictor(self.model_directory, self.sensor_ids)
+
+    def predict_full_level(self, sensor_id:int):
+        #dictionary cotained predicted_timestamp, hours_until_full, predicted_level
+        return self.predictor.predict_full_level(sensor_id, self.data)
+   
+    
+
 if __name__ == "__main__":
-    model_directory = "ML-model"
-    sensor_ids = [1, 2, 3, 4, 5, 6, 7, 8, 9]  
+    #example of predicting sensor 9 
 
-    predictor = SmortPredictor(model_directory, sensor_ids)
+    #+++++++++++++++++=Predict for sensor 9+++++++++++
+    obj=smortPredictorImplementor()
+    sensor_id=9
 
-    # Simulate new sensor data
-    # latest_data = {
-    #     'time_stamp': pd.Timestamp.now(),
-    #     'trash_level': 70.0,  # Example current level
-    #     'lag_1': 65.0,
-    #     'lag_2': 60.0,
-    #     'lag_3': 55.0
-    # }
-
-    # take from db 
-
-    sensor_id = 9  # Example: Predict for sensor 9
-    full_prediction = predictor.predict_full_level(sensor_id, latest_data)
+    full_prediction = obj.predict_full_level(sensor_id)
 
     if full_prediction:
         print(f"Sensor {sensor_id} - Trash will be full at: {full_prediction['predicted_timestamp']}")
