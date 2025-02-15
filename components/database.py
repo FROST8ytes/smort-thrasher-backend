@@ -257,6 +257,18 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
+    async def get_latest_sensor_trash_level(self, sensor_ID: int) -> list:
+        try:
+            query = """
+            SELECT * FROM sensor_record WHERE smort_ID = %s ORDER BY time_stamp DESC LIMIT 1
+            """
+            self.cursor.execute(query, (sensor_ID,))
+            record = self.cursor.fetchone()[0]
+            return record
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
     # get average of  (6 latest trash_level of the sensor)  for all sensors in  in all region
     async def get_average_trash_levels_all_sensor_in_region(self) -> list:
         try:

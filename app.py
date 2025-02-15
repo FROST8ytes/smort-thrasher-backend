@@ -51,6 +51,12 @@ async def get_sensor(sensor_ID: int):
     return sensor
 
 
+@app.get("/sensor/{sensor_ID}/record")
+async def get_latest_sensor_trash_level(sensor_ID: int):
+    record = await db.get_latest_sensor_trash_level(sensor_ID)
+    return record
+
+
 @app.get("/sensor/{sensor_ID}/records")
 async def get_sensor_records(sensor_ID: int):
     records = await db.get_sensor_records(sensor_ID)
@@ -64,11 +70,12 @@ async def create_sensor_record(sensor_data: dict):
         return HTTPException(status_code=422, detail="Maybe the JSON data is wrong...")
     return status
 
+
 @app.get("/predict/{sensor_id}")
 async def predict(sensor_id: int):
     latest_data = await db.get_latest_sensor_record(sensor_id, 4)
     predictor = SmortPredictor()
     prediction = predictor.predict_full_level(sensor_id, latest_data)
     del predictor
-    
+
     return prediction
