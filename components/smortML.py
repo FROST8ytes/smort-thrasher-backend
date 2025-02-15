@@ -12,16 +12,16 @@ class SmortML:
         # not completed yet for now Convert the dictionary to a pandas DataFrame 
         self.data = pd.DataFrame(list(trash_level_dict.items()), columns=['timestamp', 'level'])
     def train(self):
-        # Train the model 
-        sklea
+       
+   
         pass
 
     def predict(self, input_data):
-        # Predict the output
+     
         pass
 
     def evaluate(self):
-        # Evaluate the model
+      
         pass
 
 
