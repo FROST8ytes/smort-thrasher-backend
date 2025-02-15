@@ -1,3 +1,34 @@
+INSERT INTO region (ID, name, region, latitude, longitude) VALUES
+(1, 'seri iskandar', 'perak tengah', 4.599766, 101.088338),
+(2, 'pekan ipoh', 'kinta', 4.718927, 101.121763),
+(3, 'batu gajah', 'kinta tengah', 4.471511, 101.044970);
+
+SELECT setval('region_id_seq', (SELECT MAX(ID) FROM region));
+
+INSERT INTO sensor (ID, latitude, longitude, name) VALUES
+(1, 4.382715, 100.974509, 'V6'),
+(2, 4.386550, 100.974736, 'Sport Complex'),
+(3, 4.386821, 100.970825, 'V1'),
+(4, 4.388135, 100.967944, 'V2'),
+(5, 4.376466, 100.969537, 'UTP Plant'),
+(6, 4.598820, 101.077110, 'Ipoh Parade'),
+(7, 4.424457, 101.045338, 'Big Portion'),
+(8, 4.459991, 101.049471, 'KTM Batu gajah'),
+(9, 4.475300, 101.087400, 'Kellie Castle');
+
+SELECT setval('sensor_id_seq', (SELECT MAX(ID) FROM sensor));
+
+INSERT INTO region_sensor (region_ID, sensor_ID) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(2, 6),
+(3, 7),
+(3, 8),
+(3, 9);
+
 INSERT INTO sensor_record (smort_ID, time_stamp, trash_level, image) VALUES ('1', '2024-02-14 07:00:00', 6, '');
 INSERT INTO sensor_record (smort_ID, time_stamp, trash_level, image) VALUES ('1', '2024-02-14 07:15:00', 24, '');
 INSERT INTO sensor_record (smort_ID, time_stamp, trash_level, image) VALUES ('1', '2024-02-14 07:30:00', 44, '');
