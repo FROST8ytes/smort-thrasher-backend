@@ -217,10 +217,89 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
-#get latest 6 trasj_level for all sensors with the specified region 
+#get latest 6 trash_level for all sensors with the specified region 
+def get_average_trash_levels_all_sensor_in_region(self, region_ID: int) -> list:
+     
+        try:
+            query = """
+                WITH latest_records AS (
+                    SELECT
+                        sr.smort_ID,
+                        sr.trash_level,
+                        sr.time_stamp,
+                        ROW_NUMBER() OVER (PARTITION BY sr.smort_ID ORDER BY sr.time_stamp DESC) AS rn
+                    FROM
+                        sensor_record sr
+                )
+                SELECT
+                    r.ID AS region_ID,
+                    r.name AS region_name,
+                    s.ID AS sensor_ID,
+                    s.name AS sensor_name,
+                    AVG(lr.trash_level) AS avg_trash_level
+                FROM
+                    region r
+                JOIN
+                    region_sensor rs ON r.ID = rs.region_ID
+                JOIN
+                    sensor s ON rs.sensor_ID = s.ID
+                JOIN
+                    latest_records lr ON s.ID = lr.smort_ID
+                WHERE
+                    lr.rn <= 6
+                    AND r.ID = %s
+                GROUP BY
+                    r.ID, r.name, s.ID, s.name
+                ORDER BY
+                    r.ID, s.ID;
+            """
+            self.cursor.execute(query, (region_ID,))
+            results = self.cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
 
-
-#get last 6 trash level average for all seonsors in all regor ( average of all sensors in region)
+#get average of  (6 latest trash_level of the sensor)  for all sensors in  in all region 
+    def get_average_trash_levels_all_sensor_in_region(self) -> list:
+        try:
+            query = """
+                WITH latest_records AS (
+                    SELECT
+                        sr.smort_ID,
+                        sr.trash_level,
+                        sr.time_stamp,
+                        ROW_NUMBER() OVER (PARTITION BY sr.smort_ID ORDER BY sr.time_stamp DESC) AS rn
+                    FROM
+                        sensor_record sr
+                )
+                SELECT
+                    r.ID AS region_ID,
+                    r.name AS region_name,
+                    s.ID AS sensor_ID,
+                    s.name AS sensor_name,
+                    AVG(lr.trash_level) AS avg_trash_level
+                FROM
+                    region r
+                JOIN
+                    region_sensor rs ON r.ID = rs.region_ID
+                JOIN
+                    sensor s ON rs.sensor_ID = s.ID
+                JOIN
+                    latest_records lr ON s.ID = lr.smort_ID
+                WHERE
+                    lr.rn <= 6
+                GROUP BY
+                    r.ID, r.name, s.ID, s.name
+                ORDER BY
+                    r.ID, s.ID;
+            """
+            self.cursor.execute(query)
+            results = self.cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
 
 
 if __name__ == "__main__":
