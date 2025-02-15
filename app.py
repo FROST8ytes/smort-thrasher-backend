@@ -63,3 +63,12 @@ async def create_sensor_record(sensor_data: dict):
     if not status:
         return HTTPException(status_code=422, detail="Maybe the JSON data is wrong...")
     return status
+
+@app.get("/predict/{sensor_id}")
+async def predict(sensor_id: int):
+    latest_data = await db.get_latest_sensor_record(sensor_id, 4)
+    predictor = SmortPredictor()
+    prediction = predictor.predict_full_level(sensor_id, latest_data)
+    del predictor
+    
+    return prediction
