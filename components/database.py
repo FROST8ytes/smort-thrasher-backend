@@ -69,7 +69,7 @@ class Database:
             self.connection.rollback()
             return False
 
-    def get_sensor_record(self, sensor_ID: int) -> list:
+    async def get_sensor_record(self, sensor_ID: int) -> list:
         try:
             query = """
             SELECT * FROM sensor_record WHERE smort_ID = %s
@@ -82,7 +82,7 @@ class Database:
             return []
 
     # only for ML section
-    def get_partial_sensor_record(self, sensor_ID: int) -> list:
+    async def get_partial_sensor_record(self, sensor_ID: int) -> list:
         try:
             query = """
             SELECT smort_ID, time_stamp, trash_level FROM sensor_record WHERE smort_ID = %s
@@ -94,23 +94,23 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
-    def get_latest_sensor_record(self, sensor_ID: int,num_of_row: int) -> list:
+    async def get_latest_sensor_record(self, sensor_ID: int, num_of_row: int) -> list:
         try:
             query = """
-            SELECT smort_ID, time_stamp, trash_level 
-            FROM sensor_record 
-            WHERE smort_ID = %s 
-            ORDER BY time_stamp DESC 
+            SELECT smort_ID, time_stamp, trash_level
+            FROM sensor_record
+            WHERE smort_ID = %s
+            ORDER BY time_stamp DESC
             LIMIT %s
             """
             self.cursor.execute(query, (sensor_ID, num_of_row))
-            records = self.cursor.fetchall() 
+            records = self.cursor.fetchall()
             return records if records else []
         except Exception as e:
             print(f"An error occurred: {e}")
             return []
 
-    def get_sensor(self, ID:int) -> dict:
+    async def get_sensor(self, ID: int) -> dict:
         try:
             query = """
             SELECT * FROM sensor WHERE ID = %s
@@ -181,32 +181,30 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
-
-
-# get latest trash_level for all sensors in the specified region ID  
-    def get_latest_trash_levels_in_region(self, region_ID: int) -> list:
+    # get latest trash_level for all sensors in the specified region ID
+    async def get_latest_trash_levels_in_region(self, region_ID: int) -> list:
         try:
-           query = """
-            SELECT 
-                s.ID AS sensor_ID, 
-                sr.trash_level, 
+            query = """
+            SELECT
+                s.ID AS sensor_ID,
+                sr.trash_level,
                 sr.time_stamp
-            FROM 
+            FROM
                 sensor_record sr
-            JOIN 
+            JOIN
                 sensor s ON sr.smort_ID = s.ID
-            JOIN 
+            JOIN
                 region_sensor rs ON s.ID = rs.sensor_ID
-            JOIN 
+            JOIN
                 region r ON rs.region_ID = r.ID
-            WHERE 
+            WHERE
                 r.ID = %s
                 AND sr.time_stamp = (
                     SELECT MAX(time_stamp)
                     FROM sensor_record
                     WHERE smort_ID = s.ID
                 )
-            ORDER BY 
+            ORDER BY
                 s.ID;
             """
 
@@ -217,42 +215,41 @@ class Database:
             print(f"An error occurred: {e}")
             return []
 
-#get latest 6 trash_level for all sensors with the specified region 
-def get_average_trash_levels_all_sensor_in_region(self, region_ID: int) -> list:
-     
+    # get latest 6 trash_level for all sensors with the specified region
+    async def get_average_trash_levels_all_sensor_in_region(self, region_ID: int) -> list:
         try:
             query = """
-                WITH latest_records AS (
+                    WITH latest_records AS (
+                        SELECT
+                            sr.smort_ID,
+                            sr.trash_level,
+                            sr.time_stamp,
+                            ROW_NUMBER() OVER (PARTITION BY sr.smort_ID ORDER BY sr.time_stamp DESC) AS rn
+                        FROM
+                            sensor_record sr
+                    )
                     SELECT
-                        sr.smort_ID,
-                        sr.trash_level,
-                        sr.time_stamp,
-                        ROW_NUMBER() OVER (PARTITION BY sr.smort_ID ORDER BY sr.time_stamp DESC) AS rn
+                        r.ID AS region_ID,
+                        r.name AS region_name,
+                        s.ID AS sensor_ID,
+                        s.name AS sensor_name,
+                        AVG(lr.trash_level) AS avg_trash_level
                     FROM
-                        sensor_record sr
-                )
-                SELECT
-                    r.ID AS region_ID,
-                    r.name AS region_name,
-                    s.ID AS sensor_ID,
-                    s.name AS sensor_name,
-                    AVG(lr.trash_level) AS avg_trash_level
-                FROM
-                    region r
-                JOIN
-                    region_sensor rs ON r.ID = rs.region_ID
-                JOIN
-                    sensor s ON rs.sensor_ID = s.ID
-                JOIN
-                    latest_records lr ON s.ID = lr.smort_ID
-                WHERE
-                    lr.rn <= 6
-                    AND r.ID = %s
-                GROUP BY
-                    r.ID, r.name, s.ID, s.name
-                ORDER BY
-                    r.ID, s.ID;
-            """
+                        region r
+                    JOIN
+                        region_sensor rs ON r.ID = rs.region_ID
+                    JOIN
+                        sensor s ON rs.sensor_ID = s.ID
+                    JOIN
+                        latest_records lr ON s.ID = lr.smort_ID
+                    WHERE
+                        lr.rn <= 6
+                        AND r.ID = %s
+                    GROUP BY
+                        r.ID, r.name, s.ID, s.name
+                    ORDER BY
+                        r.ID, s.ID;
+                """
             self.cursor.execute(query, (region_ID,))
             results = self.cursor.fetchall()
             return results
@@ -260,8 +257,8 @@ def get_average_trash_levels_all_sensor_in_region(self, region_ID: int) -> list:
             print(f"An error occurred: {e}")
             return []
 
-#get average of  (6 latest trash_level of the sensor)  for all sensors in  in all region 
-    def get_average_trash_levels_all_sensor_in_region(self) -> list:
+    # get average of  (6 latest trash_level of the sensor)  for all sensors in  in all region
+    async def get_average_trash_levels_all_sensor_in_region(self) -> list:
         try:
             query = """
                 WITH latest_records AS (
