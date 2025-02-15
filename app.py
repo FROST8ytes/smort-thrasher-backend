@@ -96,5 +96,5 @@ async def get_average_trash_levels_all_sensors():
 
 @app.get("/analytics/average/{region_id}")
 async def get_average_trash_levels_of_all_sensors_in_region(region_id: int):
-    average_trash_levels = await db.get_average_trash_levels_all_sensors_in_region()
+    average_trash_levels = await db.get_average_trash_levels_all_sensors_in_region(region_id)
     return average_trash_levels
