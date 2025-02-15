@@ -51,6 +51,18 @@ class Database:
         except Exception as e:
             print(f"An error occurred: {e}")
             return []
+
+    def get_sensor(self, ID:int) -> dict:
+        try:
+            query = """
+            SELECT * FROM sensor WHERE ID = %s
+            """
+            self.cursor.execute(query, (ID,))
+            sensor = self.cursor.fetchone()
+            return sensor
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return {}
     
     def update_sensor_info(self, ID: int, latitude: str = None, longitude: str = None, name: str = None) -> bool:
         try:
@@ -79,3 +91,4 @@ class Database:
             print(f"An error occurred: {e}")
             self.connection.rollback()
             return False
+
