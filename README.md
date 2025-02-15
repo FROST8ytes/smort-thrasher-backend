@@ -1,1 +1,1 @@
-# smort-thrasher-backend
+# SMORT THRASHER Backend
