@@ -1,5 +1,6 @@
 import psycopg2 as pg
 from datetime import datetime
+from decimal import Decimal
 from os import getenv
 
 
@@ -68,7 +69,33 @@ class Database:
             self.connection.rollback()
             return False
 
-    async def get_sensor(self, ID: int) -> dict:
+    def get_sensor_record(self, sensor_ID: int) -> list:
+        try:
+            query = """
+            SELECT * FROM sensor_record WHERE smort_ID = %s
+            """
+            self.cursor.execute(query, (sensor_ID,))
+            records = self.cursor.fetchall()
+            return records
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
+    # only for ML section
+    def get_partial_sensor_record(self, sensor_ID: int) -> list:
+        try:
+            query = """
+            SELECT smort_ID, time_stamp, trash_level FROM sensor_record WHERE smort_ID = %s
+            """
+            self.cursor.execute(query, (sensor_ID,))
+            records = self.cursor.fetchall()
+            return records
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
+
+    def get_sensor(self, ID:int) -> dict:
         try:
             query = """
             SELECT * FROM sensor WHERE ID = %s

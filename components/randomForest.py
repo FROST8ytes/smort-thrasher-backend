@@ -12,7 +12,8 @@ from database import Database
 import matplotlib.pyplot as plt
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import r2_score 
-
+import joblib
+import os
 
 class SmortML:
     def __init__(self, data: List[Tuple[int, datetime.datetime, Decimal]]):
@@ -144,7 +145,6 @@ class SmortML:
             raise ValueError(f"Error training Random Forest model: {str(e)}")
 
     def evaluate_model(self):
-       
         if self.model is None:
             raise NotFittedError("Model not fitted. Call train_random_forest() first.")
             
@@ -153,16 +153,18 @@ class SmortML:
             mae = mean_absolute_error(self.y_test, y_pred)
             rmse = np.sqrt(mean_squared_error(self.y_test, y_pred))
             r2 = r2_score(self.y_test, y_pred)  
-            
+
             print(f"Test Set Evaluation:")
             print(f"MAE: {mae:.2f}")
             print(f"RMSE: {rmse:.2f}")
             print(f"R²: {r2:.2f}")  
+
+            return mae, rmse, r2  # ✅ Added return statement
         except Exception as e:
             raise ValueError(f"Error evaluating model: {str(e)}")
 
+
     def k_fold_cross_validation(self, k: int = 5):
-       
         try:
             features = ['hour', 'day_of_week', 'month', 'is_weekend', 'lag_1', 'lag_2', 'lag_3']
             X = self.data[features]
@@ -174,17 +176,23 @@ class SmortML:
             # Perform cross-validation
             scores = cross_val_score(model, X, y, cv=kf, scoring='neg_mean_absolute_error')
             scores = -scores  # Convert to positive MAE
+            mean_mae = scores.mean()
+            std_mae = scores.std()
+
             print(f"K-Fold Cross-Validation Results (k={k}):")
-            print(f"Mean MAE: {scores.mean():.2f}")
-            print(f"Standard Deviation: {scores.std():.2f}")
+            print(f"Mean MAE: {mean_mae:.2f}")
+            print(f"Standard Deviation: {std_mae:.2f}")
+
+            return mean_mae, std_mae  # ✅ Added return statement
         except Exception as e:
             raise ValueError(f"Error performing k-fold cross-validation: {str(e)}")
 
     
 
 if __name__ == "__main__":
+    sensor=9
     db = Database()
-    data = db.get_partial_sensor_record(1)
+    data = db.get_partial_sensor_record(sensor)
     model = SmortML(data)
     model.clean_data()
     model.extract_features()
@@ -207,3 +215,14 @@ if __name__ == "__main__":
         print(f"Trash will be full at: {full_prediction['predicted_timestamp']}")
         print(f"Hours until full: {full_prediction['hours_until_full']}")
         print(f"Predicted level: {full_prediction['predicted_level']:.2f}%")
+
+
+    current_dir = os.getcwd()  
+
+
+    
+    model_file = os.path.join(current_dir, f"sensor_{sensor}_model.joblib")
+
+    joblib.dump(model.model, model_file)  
+
+    print(f"Model saved successfully at: {model_file}")
