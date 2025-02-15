@@ -182,6 +182,47 @@ class Database:
             return []
 
 
+
+# get latest trash_level for all sensors in the specified region ID  
+    def get_latest_trash_levels_in_region(self, region_ID: int) -> list:
+        try:
+           query = """
+            SELECT 
+                s.ID AS sensor_ID, 
+                sr.trash_level, 
+                sr.time_stamp
+            FROM 
+                sensor_record sr
+            JOIN 
+                sensor s ON sr.smort_ID = s.ID
+            JOIN 
+                region_sensor rs ON s.ID = rs.sensor_ID
+            JOIN 
+                region r ON rs.region_ID = r.ID
+            WHERE 
+                r.ID = %s
+                AND sr.time_stamp = (
+                    SELECT MAX(time_stamp)
+                    FROM sensor_record
+                    WHERE smort_ID = s.ID
+                )
+            ORDER BY 
+                s.ID;
+            """
+
+            self.cursor.execute(query, (region_ID,))
+            results = self.cursor.fetchall()
+            return results
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+
+#get latest 6 trasj_level for all sensors with the specified region 
+
+
+#get last 6 trash level average for all seonsors in all regor ( average of all sensors in region)
+
+
 if __name__ == "__main__":
     from dotenv import load_dotenv
 
