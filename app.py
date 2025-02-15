@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from components.database import Database
+from components.smortPredictor import SmortPredictor
 from os import getenv
 from dotenv import load_dotenv
 
@@ -79,3 +80,21 @@ async def predict(sensor_id: int):
     del predictor
 
     return prediction
+
+
+@app.get("/analytics/level/{region_id}")
+async def get_latest_trash_levels_in_region(region_id: int):
+    trash_levels = await db.get_latest_trash_levels_in_region(region_id)
+    return trash_levels
+
+
+@app.get("/analytics/average/all")
+async def get_average_trash_levels_all_sensors():
+    average_trash_levels = await db.get_average_trash_levels_all_sensors()
+    return average_trash_levels
+
+
+@app.get("/analytics/average/{region_id}")
+async def get_average_trash_levels_of_all_sensors_in_region(region_id: int):
+    average_trash_levels = await db.get_average_trash_levels_all_sensors_in_region()
+    return average_trash_levels
