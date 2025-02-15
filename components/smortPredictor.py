@@ -1,10 +1,9 @@
 import os
-from dotenv import load_dotenv
 import joblib
 import pandas as pd
 import os
-from typing import Dict, Optional
-from database import Database
+from typing import Dict
+from components.database import Database
 
 
 class SmortPredictor:
