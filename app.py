@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from components.database import Database
-from components.smortPredictor import SmortPredictor
+from components.smortPredictor import smortPredictorImplementor
 from os import getenv
 from dotenv import load_dotenv
 
@@ -74,10 +74,8 @@ async def create_sensor_record(sensor_data: dict):
 
 @app.get("/predict/{sensor_id}")
 async def predict(sensor_id: int):
-    latest_data = await db.get_latest_sensor_record(sensor_id, 4)
-    predictor = SmortPredictor()
-    prediction = predictor.predict_full_level(sensor_id, latest_data)
-    del predictor
+    predictor = smortPredictorImplementor()
+    prediction = predictor.predict_full_level(sensor_id)
 
     return prediction
 
