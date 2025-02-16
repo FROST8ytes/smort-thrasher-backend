@@ -87,7 +87,7 @@ class smortPredictorImplementor:
         }
 
         # dictionary cotained predicted_timestamp, hours_until_full, predicted_level
-        return self.predictor.predict_full_level(self.sensor_id, data)
+        return self.predictor.predict_full_level(sensor_id, data)
 
 
 if __name__ == "__main__":
