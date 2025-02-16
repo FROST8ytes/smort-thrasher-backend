@@ -74,8 +74,8 @@ async def create_sensor_record(sensor_data: dict):
 
 @app.get("/predict/{sensor_id}")
 async def predict(sensor_id: int):
-    predictor = await smortPredictorImplementor(sensor_id=sensor_id)
-    prediction = predictor.predict_full_level()
+    predictor = smortPredictorImplementor(model_directory="./ML-model")
+    prediction = await predictor.predict_full_level(sensor_id)
 
     return prediction
 

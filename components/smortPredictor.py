@@ -64,16 +64,19 @@ class SmortPredictor:
 
 
 class smortPredictorImplementor:
-    async def __init__(self, sensor_id: int, model_directory="../ML-model", sensor_ids=[1, 2, 3, 4, 5, 6, 7, 8, 9]):
+    def __init__(self, model_directory="../ML-model", sensor_ids=[1, 2, 3, 4, 5, 6, 7, 8, 9]):
         self.model_directory = model_directory
+        self.sensor_ids = sensor_ids
+        self.predictor = SmortPredictor(self.model_directory, self.sensor_ids)
 
+    async def predict_full_level(self, sensor_id: int):
         db = Database(os.getenv("DB_HOST"), os.getenv("DB_PORT"), os.getenv(
             "DB_USER"), os.getenv("DB_PASSWORD"), os.getenv("DB_NAME"))
+
         latest_data = await db.get_latest_sensor_record(
             sensor_ID=sensor_id, num_of_row=4)
-        # db.close_connection()
 
-        self.data = {
+        data = {
             # Most recent timestamp
             'time_stamp': pd.Timestamp(latest_data[0][1]),
             'trash_level': float(latest_data[0][2]),        # Current level
@@ -83,13 +86,8 @@ class smortPredictorImplementor:
 
         }
 
-        self.sensor_id = sensor_id
-        self.sensor_ids = sensor_ids
-        self.predictor = SmortPredictor(self.model_directory, self.sensor_ids)
-
-    def predict_full_level(self):
         # dictionary cotained predicted_timestamp, hours_until_full, predicted_level
-        return self.predictor.predict_full_level(self.sensor_id, self.data)
+        return self.predictor.predict_full_level(self.sensor_id, data)
 
 
 if __name__ == "__main__":
