@@ -1,0 +1,27 @@
+[project]
+name = "smort-thrasher-backend"
+version = "0.1.0"
+description = "SMORT backend for Web and Mobile."
+authors = [
+    {name = "Ammar Farhan Mohamad Rizam",email = "ammar_22006911@utp.edu.my"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "fastapi[all] (>=0.115.12,<0.116.0)",
+    "uvicorn (>=0.34.2,<0.35.0)",
+    "python-dotenv (>=1.1.0,<2.0.0)",
+    "sqlalchemy (>=2.0.40,<3.0.0)",
+    "alembic (>=1.15.2,<2.0.0)",
+    "sqlmodel (>=0.0.24,<0.0.25)",
+    "psycopg2-binary (>=2.9.10,<3.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

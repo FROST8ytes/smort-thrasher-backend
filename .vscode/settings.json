@@ -1,0 +1,14 @@
+{
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "34.142.192.21",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "smort-db",
+      "password": "xyfzes-8gyzca-rezdIt",
+      "username": "postgres",
+      "database": "postgres"
+    }
+  ]
+}
