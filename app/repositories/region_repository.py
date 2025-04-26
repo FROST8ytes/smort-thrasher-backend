@@ -52,6 +52,21 @@ class RegionRepository(BaseRepository[Region]):
 
         return result
 
+    async def get_region_sensors(self, region_id: int, session: Session) -> List[Sensor]:
+        """Get region sensors (via cities)"""
+        result = []
+
+        cities = session.exec(select(City).where(
+            City.region_id == region_id)).all()
+
+        region_sensors = []
+        for city in cities:
+            sensors = session.exec(select(Sensor).where(
+                Sensor.city_id == city.id)).all()
+            region_sensors.extend(sensors)
+
+        return region_sensors
+
 
 class CityRepository(BaseRepository[City]):
     def __init__(self):

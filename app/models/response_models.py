@@ -1,9 +1,9 @@
 from sqlmodel import SQLModel
 from typing import List, Optional
 from datetime import datetime
-from .region import Region, City
+from .region import City
 from .sensor import Sensor
-from .record import Record
+from pydantic import BaseModel
 
 
 class CityWithSensors(SQLModel):
@@ -60,3 +60,8 @@ class SensorPredictTrashLevel(SQLModel):
     predicted_timestamp: datetime
     hours_until_full: float
     predicted_level: float
+
+
+class OptimizationResponse(BaseModel):
+    status: str
+    message: str

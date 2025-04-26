@@ -6,6 +6,7 @@ from ..repositories import sensor_repo
 from ..services.database import SessionDep
 import random
 
+
 class SmortPredictor:
     def __init__(self, model_dir: str, sensor_ids: list[int]) -> None:
         self.model_dir: str = model_dir
@@ -42,7 +43,8 @@ class SmortPredictor:
 
         predictions = []
         for step in range(max_steps):
-            future_time = last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)
+            future_time = last_timestamp + \
+                pd.Timedelta(minutes=(step + 1) * 15)
             features = {
                 'hour': future_time.hour,
                 'day_of_week': future_time.dayofweek,
@@ -63,17 +65,21 @@ class SmortPredictor:
             current_data['trash_level'] = pred
 
             if pred >= threshold:
-                predicted_time = last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)
+                predicted_time = last_timestamp + \
+                    pd.Timedelta(minutes=(step + 1) * 15)
                 return {
                     'sensor_id': sensor_id,
                     'predicted_timestamp': predicted_time,
-                    'hours_until_full': (step + 1) * 0.25,  # 15 minutes = 0.25 hours
+                    # 15 minutes = 0.25 hours
+                    'hours_until_full': (step + 1) * 0.25,
                     'predicted_level': pred
                 }
 
         # If threshold is never reached
-        random_minutes = random.randint(3 * 24 * 4, 4 * 24 * 4) * 15  # 3-4 days, in 15-min steps
-        random_future_time = last_timestamp + pd.Timedelta(minutes=random_minutes)
+        random_minutes = random.randint(
+            3 * 24 * 4, 4 * 24 * 4) * 15  # 3-4 days, in 15-min steps
+        random_future_time = last_timestamp + \
+            pd.Timedelta(minutes=random_minutes)
 
         return {
             'sensor_id': sensor_id,
@@ -82,9 +88,14 @@ class SmortPredictor:
             'predicted_level': threshold
         }
 
+
 class SmortPredictorImplementor:
-    def __init__(self, model_directory: str = "../ml_model", sensor_ids: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]) -> None:
-        self.model_directory: str = model_directory
+    def __init__(self, model_directory: str | None = None, sensor_ids: list[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]) -> None:
+
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        MODEL_DIR = os.path.join(BASE_DIR, "ml_model")
+        print(f"[+] Model Directory: {MODEL_DIR}")
+        self.model_directory: str = model_directory if model_directory is not None else MODEL_DIR
         self.sensor_ids: list[int] = sensor_ids
         self.predictor: SmortPredictor = SmortPredictor(
             self.model_directory, self.sensor_ids)
