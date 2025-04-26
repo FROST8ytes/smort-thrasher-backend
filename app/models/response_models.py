@@ -58,5 +58,5 @@ class SensorAverageLevel(SQLModel):
 class SensorPredictTrashLevel(SQLModel):
     sensor_id: int
     predicted_timestamp: datetime
-    hours_until_full: int
+    hours_until_full: float
     predicted_level: float

@@ -1,6 +1,7 @@
 import os
 import joblib
 import pandas as pd
+from sklearn.exceptions import NotFittedError
 from ..repositories import sensor_repo
 from ..services.database import SessionDep
 
@@ -22,44 +23,59 @@ class SmortPredictor:
                 print(f"Warning: Model file not found for sensor {sensor_id}")
         return models
 
-    def predict_full_level(self, sensor_id: int, latest_data: dict) -> dict | None:
+    def predict_full_level(
+        self,
+        sensor_id: int,
+        latest_data: dict,
+        threshold=95,
+        step_minutes=30
+    ) -> dict | None:
         if sensor_id not in self.models:
             raise ValueError(f"Model for sensor {sensor_id} is not loaded.")
 
-        model = self.models[sensor_id]
+        model = self.models.get(sensor_id)
 
-        last_timestamp: pd.Timestamp = latest_data['time_stamp']
-        current_data: dict = latest_data.copy()
+        if model is None:
+            raise NotFittedError(
+                "Model not fitted. Call train_random_forest() first.")
 
-        for step in range(672):
-            features = {
-                'hour': (last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)).hour,
-                'day_of_week': (last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)).dayofweek,
-                'month': (last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)).month,
-                'is_weekend': int((last_timestamp + pd.Timedelta(minutes=(step + 1) * 15)).dayofweek in [5, 6]),
-                'lag_1': current_data['trash_level'],
-                'lag_2': current_data['lag_1'],
-                'lag_3': current_data['lag_2']
-            }
+        try:
+            last_timestamp = latest_data['time_stamp']
+            current_data = latest_data.copy()
+            step = 0
 
-            pred: float = model.predict(pd.DataFrame([features]))[0]
-
-            current_data['lag_3'] = current_data['lag_2']
-            current_data['lag_2'] = current_data['lag_1']
-            current_data['lag_1'] = pred
-            current_data['trash_level'] = pred
-
-            if pred >= 90:
-                predicted_time: pd.Timestamp = last_timestamp + \
-                    pd.Timedelta(minutes=(step + 1) * 15)
-                return {
-                    'sensor_id': sensor_id,
-                    'predicted_timestamp': predicted_time,
-                    'hours_until_full': (step + 1) * 0.25,
-                    'predicted_level': pred
+            while True:
+                future_time = last_timestamp + \
+                    pd.Timedelta(minutes=(step + 1) * step_minutes)
+                features = {
+                    'hour': future_time.hour,
+                    'day_of_week': future_time.dayofweek,
+                    'month': future_time.month,
+                    'is_weekend': int(future_time.dayofweek in [5, 6]),
+                    'lag_1': current_data['trash_level'],
+                    'lag_2': current_data['lag_1'],
+                    'lag_3': current_data['lag_2']
                 }
 
-        return None
+                pred = model.predict(pd.DataFrame([features]))[0]
+
+                current_data['lag_3'] = current_data['lag_2']
+                current_data['lag_2'] = current_data['lag_1']
+                current_data['lag_1'] = pred
+                current_data['trash_level'] = pred
+
+                step += 1
+
+                if pred >= threshold:
+                    return {
+                        'sensor_id': sensor_id,
+                        'predicted_timestamp': future_time,
+                        'hours_until_full': step * (step_minutes / 60),
+                        'predicted_level': pred
+                    }
+
+        except Exception as e:
+            raise ValueError(f"Error predicting full level: {str(e)}")
 
 
 class SmortPredictorImplementor:
