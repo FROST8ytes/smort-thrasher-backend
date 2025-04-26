@@ -71,3 +71,12 @@ async def get_sensor_with_latest_record(sensor_id: int, session: SessionDep):
         "city_id": sensor.city_id,
         "latest_record": latest
     }
+
+
+@sensor_router.get("/{sensor_id}/latest-records")
+async def get_latest_records_for_sensor(sensor_id: int, session: SessionDep, limit: int = 4):
+    records = await sensor_repo.get_latest_sensor_records(session, sensor_id, limit)
+    if not records:
+        raise HTTPException(
+            status_code=404, detail="No records found for this sensor")
+    return records
