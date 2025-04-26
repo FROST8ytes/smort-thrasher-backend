@@ -5,6 +5,8 @@ from typing import Optional
 class Region(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True, index=True)
     name: str = Field(unique=True)
+    state: str
+    emblem_url: str | None = None
 
 
 class City(SQLModel, table=True):
