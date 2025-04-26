@@ -16,12 +16,7 @@ def parse_pg_unix_connection_string(conn_string):
         username = match.group(2)
         password = match.group(3)
         database = match.group(4)
-        socket_path = match.group(5)
-
-        if "/.s.PGSQL.5432" in socket_path:
-            unix_socket_path = socket_path.rsplit("/.s.PGSQL.5432", 1)[0]
-        else:
-            unix_socket_path = socket_path
+        unix_socket_path = match.group(5)
 
         return {
             "drivername": drivername,
@@ -43,7 +38,7 @@ else:
             username=parsed["username"],
             password=parsed["password"],
             database=parsed["database"],
-            host=parsed['unix_socket_path'],
+            query={"unix_sock": f"{parsed['unix_socket_path']}/.s.PGSQL.5432"},
         )
     )
 
