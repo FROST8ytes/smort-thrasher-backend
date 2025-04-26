@@ -43,8 +43,7 @@ else:
             username=parsed["username"],
             password=parsed["password"],
             database=parsed["database"],
-            query={
-                "unix_sock": f"{parsed['unix_socket_path']}/.s.PGSQL.5432"},
+            host=parsed['unix_socket_path'],
         )
     )
 
