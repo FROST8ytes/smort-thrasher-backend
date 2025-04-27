@@ -1,0 +1,3 @@
+[submodule "smort-telegram-bot"]
+	path = smort-telegram-bot
+	url = https://github.com/princejeshurun17/smort-telegram-bot.git
