@@ -32,36 +32,38 @@ async def get_sensors_for_collection(
         latitude = sensor.latitude
         longitude = sensor.longitude
 
-    next_collection_time = start_time
+        next_collection_time = start_time
 
-    if next_collection_time < refered_date:
-        diff_hours = (
-            refered_date - next_collection_time).total_seconds() / 3600
-        skips = (diff_hours // frequency_hours) + 1
-        next_collection_time += timedelta(
-            hours=skips * frequency_hours)
+        if next_collection_time < refered_date:
+            diff_hours = (
+                refered_date - next_collection_time).total_seconds() / 3600
+            skips = (diff_hours // frequency_hours) + 1
+            next_collection_time += timedelta(
+                hours=skips * frequency_hours)
 
-    print(next_collection_time)
-    prediction = await predictor.predict_full_level(session=session, sensor_id=sensor_id)
-    if prediction:
-        hours_until_full = prediction["hours_until_full"]
-        time_full = refered_date + timedelta(hours=hours_until_full)
-        print(f"Sensor {sensor_id} will be full at {time_full} ",
-              f"which is {hours_until_full:.2f} hours away.")
+        print(next_collection_time)
+        prediction = await predictor.predict_full_level(session=session, sensor_id=sensor_id)
+        
+        if prediction:
+            print(f"Sensor {sensor_id} will be full at {prediction['predicted_timestamp']}.")
+            hours_until_full = prediction["hours_until_full"]
+            time_full = refered_date + timedelta(hours=hours_until_full)
+            print(f"Sensor {sensor_id} will be full at {time_full} ",
+                f"which is {hours_until_full:.2f} hours away.")
 
-        adjusted_time_full = time_full - timedelta(hours=BUFFER_HOURS)
+            adjusted_time_full = time_full - timedelta(hours=BUFFER_HOURS)
 
-        print(
-            "adjusted_time_full: {adjusted_time_full} , next_collection : {next_collection_time}")
-        if adjusted_time_full <= next_collection_time:
-            sensors_for_collection.append({
-                "id": sensor_id,
-                "latitude": latitude,
-                "longitude": longitude
-            })
-    else:
-        print(
-            f"Warning: No prediction for sensor {sensor_id}. Skipping.")
+            print(
+                "adjusted_time_full: {adjusted_time_full} , next_collection : {next_collection_time}")
+            if adjusted_time_full <= next_collection_time:
+                sensors_for_collection.append({
+                    "id": sensor_id,
+                    "latitude": latitude,
+                    "longitude": longitude
+                })
+        else:
+            print(
+                f"Warning: No prediction for sensor {sensor_id}. Skipping.")
 
     return sensors_for_collection
 
